@@ -40,5 +40,40 @@ class Order(HashModel):
 
 @app.post("/orders")
 def create(productOrder:ProductOrder):
-    pass
-    # req = re
+    req = requests.get(f"http://127.0.0.1:8000/product/{productOrder.product_id}")
+    product = req.json()
+    fee = product['price'] * 0.2
+
+    order = Order(
+        product_id = productOrder.product_id,
+        price = product['price'],
+        fee = fee,
+        total = product['price'] + fee,
+        quantity = productOrder.quantity,
+        status='pending'
+    )
+
+    return order.save()
+
+
+@app.get('/orders/{pk}')
+def get(pk:str):
+    return format(pk)
+
+
+@app.get('/orders')
+def get_all():
+    return [format(pk) for pk in Order.all_pks()]
+
+
+
+def format(pk:str):
+    order = Order.get(pk)
+    return {
+        "id":order.pk,
+        "product_id":order.product_id,
+        "fee":order.fee,
+        "total":order.total,
+        "quantity":order.quantity,
+        "status":order.status
+    }
